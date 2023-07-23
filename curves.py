@@ -6,7 +6,7 @@
 | *                 @   Supply curve 
 |    *           @
 |       *     @
-|          X <------   Intercept
+|          X <------   Equilibrium point
 |      @      *
 |   @            *  
 |@                  *   Demand curve 
@@ -18,6 +18,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import matplotlib.pyplot as plt  # type: ignore
+from matplotlib.axes import Axes  # type: ignore
 
 
 def make_qp_curve(intercept: float, slope: float) -> "Curve":
@@ -29,7 +30,7 @@ def make_qp_curve(intercept: float, slope: float) -> "Curve":
 class Curve:
     """Create P(Q) line from intercept at vertical axis P and line slope.
 
-    Line equation is `P = intercept + slope * Q`.
+    Line equation is `P(Q)  = intercept + slope * Q`.
     """
 
     intercept: float
@@ -46,7 +47,7 @@ class Curve:
 
     def q(self, p):
         """Shorthand for quantity() method."""
-        return (self.intercept / (-self.slope)) + (p / self.slope)
+        return -(self.intercept / self.slope) + (p / self.slope)
 
     def price(self, quantity):
         """Price given *quantity* demanded or supplied."""
@@ -68,7 +69,7 @@ class Curve:
         return self.vertical_shift(delta * -self.slope)
 
     def equilibrium(self, other_curve: "Curve") -> "Point":
-        """Returns a point of intersection of two curves. 
+        """Returns a point of intersection of two curves.
         Allows for negative prices or quantities."""
         v1 = np.array([1, -self.slope])
         v2 = np.array([1, -other_curve.slope])
@@ -80,42 +81,49 @@ class Curve:
         x = x.squeeze()
         return Point(price=x[0, 0], quantity=x[0, 1])
 
-    def plot(self, ax=None, color="black", linewidth=2, max_q=None, clean=False):
+    def plot(self, ax=None, color="black", linewidth=2, max_q=None) -> Axes:
         if ax is None:
             ax = plt.gca()
-
-        # core plot
-        q_ = self.q_intercept
-        if np.isnan(q_):  # if slope is 0,
-            q_ = 10**10  # we set the intercept very far away
-        x2 = np.max([q_, max_q])
-        y2 = self.intercept + self.slope * x2
-
-        xs = np.linspace(0, x2, 2)
-        ys = np.linspace(self.intercept, y2, 2)
-
-        ax.plot(xs, ys, color=color, linewidth=linewidth)
-
-        if clean:
-            ax.spines["left"].set_position("zero")
-            ax.spines["bottom"].set_position("zero")
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
+        p1 = Point(price=self.intercept, quantity=0)
+        if max_q:
+            p2 = Point(price=self.price(max_q), quantity=max_q)
+        else:
+            p2 = Point(price=0, quantity=self.q_intercept)
+        plotline(ax, p1, p2, color=color, linewidth=linewidth)
         return ax
 
-    def equilibrium_plot(
-        self, other_curve, ax=None, linewidth=2, annotate=False, clean=True
-    ):
+    def equilibrium_plot(self, other_curve, ax=None, linewidth=2) -> Axes:
         """Plot the intersection of two curves.
         This can't handle taxes or other interventions."""
         if ax is None:
-            fig, ax = plt.gcf(), plt.gca()
+            # not used
+            # fig = plt.gcf()
+            ax = plt.gca()
         ax.set_ylabel("Price")
         ax.set_xlabel("Quantity")
-        for curve in self, other_curve:
-            curve.plot(ax=ax, linewidth=linewidth)
+        curves = self, other_curve
+        max_q = max(curve.q_intercept for curve in curves)
+        for curve in curves:
+            curve.plot(ax=ax, max_q=max_q, linewidth=linewidth)
         e = self.equilibrium(other_curve)
-        e.plot_marker(ax, draw_lines=True, annotate=annotate)
+        e.plot_marker(ax, draw_lines=True, annotate=False)
+        return ax
+
+
+def plotline(ax, p1: "Point", p2: "Point", color="black", linewidth=2) -> None:
+    """Plot a line connecting two points: *p1* and *p2*."""
+    y1, x1 = p1.tuple()
+    y2, x2 = p2.tuple()
+    ax.plot([x1, x2], [y1, y2], color=color, linewidth=linewidth)
+
+
+def clean_axis(ax: Axes) -> None:
+    """Сode for cleaning axis with unclear behaviour."""
+    ax.spines["left"].set_position("zero")
+    ax.spines["bottom"].set_position("zero")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
 
 @dataclass
 class Point:
@@ -153,6 +161,30 @@ class Point:
 class Demand(Curve):
     pass
 
+    def consumer_surplus(self, price: float):
+        """Calculate consumer surplus given a *price*."""
+        tri_height = self.intercept - price
+        tri_base = self.q(price)
+        return 0.5 * tri_base * tri_height
+
+    def plot_surplus(self, price, ax=None):
+        """Plot consumer surplus."""
+        if ax == None:
+            ax = plt.gca()
+        # Fill surplus region
+        ax.fill_between(
+            [0, self.q(price)], y1=[self.intercept, price], y2=price, alpha=0.1
+        )
+
 
 class Supply(Curve):
-    pass
+    def plot_surplus(self, price, ax=None):
+        if ax == None:
+            ax = plt.gca()
+        ax.fill_between(
+            [0, self.q(price)],
+            y1=[self.intercept, price],
+            y2=price,
+            color="C1",
+            alpha=0.1,
+        )
