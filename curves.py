@@ -29,8 +29,8 @@ class Curve:
     This is an inverse=True curve in econ101.py.
     """
 
-    slope: float
     intercept: float
+    slope: float
 
     @property
     def q_intercept(self):
@@ -74,7 +74,7 @@ class Curve:
 
 @dataclass
 class Point:
-    p: float
+    p: float 
     q: float
 
     def round(self, precision) -> "Point":
