@@ -68,16 +68,14 @@ class Curve:
         return self.vertical_shift(delta * -self.slope)
 
     def equilibrium(self, other_curve: "Curve") -> "Point":
-        """Returns a tuple (p, q). Allows for negative prices or quantities."""
-
+        """Returns a point of intersection of two curves. 
+        Allows for negative prices or quantities."""
         v1 = np.array([1, -self.slope])
         v2 = np.array([1, -other_curve.slope])
-
+        A = np.array([v1, v2])
+        # FIXME: must use ndarray of matrix
         b = self.intercept, other_curve.intercept
-
-        A = np.matrix((v1, v2))
         b = np.matrix(b).T  # type: ignore
-
         x = np.linalg.inv(A) * b
         x = x.squeeze()
         return Point(price=x[0, 0], quantity=x[0, 1])
