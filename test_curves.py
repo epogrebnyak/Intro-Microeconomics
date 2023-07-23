@@ -4,8 +4,10 @@ from curves import Demand, Supply
 def test_q_intercept():
     assert Demand(intercept=12, slope=-2).q_intercept == 6
 
+
 def test_shifts():
     assert Demand(20, -2) == Demand(12, -2).vertical_shift(2).horizontal_shift(3)
+
 
 def test_equilibrium():
     demand = Demand(intercept=12, slope=-2)
