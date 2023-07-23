@@ -177,9 +177,7 @@ class Demand(Curve):
 class Supply(Curve):
     def producer_surplus(self, price: float) -> float:
         """Calculate producer surplus (PS) at a given *price*."""
-        tri_height = self.intercept - price
-        tri_base = self.q(price)
-        return 0.5 * tri_base * tri_height
+        raise NotImplementedError
 
     def plot_surplus(self, price, ax=None):
         """Fill producer surplus (PS) area."""
