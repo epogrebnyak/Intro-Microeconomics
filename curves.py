@@ -80,7 +80,7 @@ class Curve:
         x = x.squeeze()
         return Point(price=x[0, 0], quantity=x[0, 1])
 
-    def plot(self, ax=None, color="black", linewidth=2, max_q=10, clean=False):
+    def plot(self, ax=None, color="black", linewidth=2, max_q=None, clean=False):
         if ax is None:
             ax = plt.gca()
 
@@ -116,8 +116,6 @@ class Curve:
             curve.plot(ax=ax, linewidth=linewidth)
         e = self.equilibrium(other_curve)
         e.plot_marker(ax, draw_lines=True, annotate=annotate)
-        return fig, ax
-
 
 @dataclass
 class Point:
