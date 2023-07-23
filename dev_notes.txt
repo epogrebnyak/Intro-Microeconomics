@@ -1,0 +1,12 @@
+Maybe: 
+- add commands used to generate PDF files
+- is name on PyPI taken? maintainer/comaintainer?
+- no spaces in folder or file names
+- cut `?` from into things accomplished and development ideas
+- make aiport a starting story, not whole project description
+
+Code:
+- black code formatter
+- separate data from presentation
+- tests
+- things to do and instructor ideas
