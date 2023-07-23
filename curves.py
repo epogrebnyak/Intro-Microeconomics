@@ -159,30 +159,34 @@ class Point:
 
 
 class Demand(Curve):
-    pass
-
-    def consumer_surplus(self, price: float):
-        """Calculate consumer surplus given a *price*."""
+    def consumer_surplus(self, price: float) -> float:
+        """Calculate consumer surplus at given *price*."""
         tri_height = self.intercept - price
         tri_base = self.q(price)
         return 0.5 * tri_base * tri_height
 
     def plot_surplus(self, price, ax=None):
-        """Plot consumer surplus."""
+        """Fill consumer surplus (CS) area."""
         if ax == None:
             ax = plt.gca()
-        # Fill surplus region
         ax.fill_between(
-            [0, self.q(price)], y1=[self.intercept, price], y2=price, alpha=0.1
+            x=[0, self.q(price)], y1=[self.intercept, price], y2=price, alpha=0.1
         )
 
 
 class Supply(Curve):
+    def producer_surplus(self, price: float) -> float:
+        """Calculate producer surplus (PS) at a given *price*."""
+        tri_height = self.intercept - price
+        tri_base = self.q(price)
+        return 0.5 * tri_base * tri_height
+
     def plot_surplus(self, price, ax=None):
+        """Fill producer surplus (PS) area."""
         if ax == None:
             ax = plt.gca()
         ax.fill_between(
-            [0, self.q(price)],
+            x=[0, self.q(price)],
             y1=[self.intercept, price],
             y2=price,
             color="C1",
